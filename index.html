@@ -166,8 +166,8 @@
   </div>
 
 <script>
-  const START_HOUR = 9;
-  const START_MIN  = 14;
+  const START_HOUR = 21;
+  const START_MIN  = 7;
   const TOTAL = 14;
 
   const CAPAS = [
@@ -215,7 +215,7 @@
     const times = [];
     for(let i=0;i<TOTAL;i++){
       const d = new Date(baseDate);
-      d.setHours(START_HOUR + i, START_MIN, 0, 0);
+      d.setHours(START_HOUR, START_MIN + i, 0, 0);
       times.push(d);
     }
     return times;
@@ -377,6 +377,7 @@
 </script>
 </body>
 </html>
+
 
 
 
