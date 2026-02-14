@@ -130,15 +130,10 @@
   </div>
 
 <script>
-  // =========================
-  // CONFIG
-  // =========================
-  // Arranca 09:14 y luego cada hora, 14 capas total
-  const START_HOUR = 20;
+  const START_HOUR = 9;
   const START_MIN  = 14;
   const TOTAL = 14;
 
-  // Textos (edítalos)
   const CAPAS = [
     "Cuando pienso en ti, mi día se vuelve sol.",
     "Aquí va tu frase para la Capa 02.",
@@ -156,37 +151,58 @@
     "Llegamos al final… gracias por estar aquí."
   ];
 
-  // Si quieres que el audio solo aparezca en capa 14:
-  const AUDIO_FILE = "mensaje-final.mp3"; // súbelo al repo con ese nombre
+  const AUDIO_FILE = "mensaje-final.mp3";
   const AUDIO_LABEL = "▶ Escuchar mensaje final";
 
-  // =========================
-  // HELPERS
-  // =========================
-  const pad2 = n => String(n).padStart(2,"0");
+  const GATE_LINES = [
+    "No te me adelantes 😌",
+    "Guárdame tantito.",
+    "Respira. Esto es con calma.",
+    "Ok, pausa ceremonial.",
+    "Vuelve cuando el reloj diga ‘ya’.",
+    "Aquí la espera también cuenta.",
+    "No es castigo, es ritmo.",
+    "Un ratito más. Ya casi.",
+    "Te juro que vale la pena.",
+    "No corras, quédate conmigo.",
+    "El siguiente pedacito viene en serio.",
+    "Te tengo otra guardada.",
+    "Última recta."
+  ];
 
-  function buildUnlockTimes(baseDate){
-    // baseDate es "hoy" en el navegador del usuario
-    const times = [];
-    for(let i=0;i<TOTAL;i++){
-      const d = new Date(baseDate);
-      d.setHours(START_HOUR, START_MIN + i, 0, 0);
-      times.push(d);
-    }
-    return times;
-  }
+  const pad2 = n => String(n).padStart(2, "0");
+  const now = () => new Date();
 
   function formatTime(d){
     return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   }
 
-  function now(){
-    return new Date();
+  function buildUnlockTimes(baseDate){
+    const times = [];
+    for(let i=0;i<TOTAL;i++){
+      const d = new Date(baseDate);
+      d.setHours(START_HOUR + i, START_MIN, 0, 0);
+      times.push(d);
+    }
+    return times;
   }
 
-  // =========================
-  // RENDER
-  // =========================
+  function msToCountdown(ms){
+    const s = Math.max(0, Math.floor(ms/1000));
+    const hh = Math.floor(s/3600);
+    const mm = Math.floor((s%3600)/60);
+    const ss = s%60;
+    if(hh > 0) return `${hh}h ${mm}m`;
+    if(mm > 0) return `${mm}m ${ss}s`;
+    return `${ss}s`;
+  }
+
+  function gateCopy(i){
+    // i es el índice de la siguiente capa (0-based)
+    // usamos mensajes distintos por gate, ciclando si hiciera falta
+    return GATE_LINES[Math.max(0, Math.min(GATE_LINES.length-1, i-1))] || "Regresa en un ratito.";
+  }
+
   function render(){
     const t = document.getElementById("timeline");
     t.innerHTML = "";
@@ -194,26 +210,31 @@
     const current = now();
     const unlockTimes = buildUnlockTimes(current);
 
-    // Encuentra cuántas capas ya están desbloqueadas
     let unlockedCount = 0;
     for(let i=0;i<unlockTimes.length;i++){
       if(current >= unlockTimes[i]) unlockedCount = i+1;
     }
 
-    // Si ninguna desbloqueada todavía: solo gate hacia la primera
+    // Ninguna todavía: gate hacia la primera
     if(unlockedCount === 0){
+      const next = unlockTimes[0];
       const g = document.createElement("div");
       g.className = "gate";
-      g.innerHTML = `🔒 <b>La primera capa se desbloquea a las ${formatTime(unlockTimes[0])}.</b><br>
-      No hagas scroll mental todavía 😌`;
+      g.innerHTML = `
+        <div class="gateTop">🔒 <b>Primera capa a las ${formatTime(next)}.</b></div>
+        <div class="gateMid">${gateCopy(0)}</div>
+        <div class="gateBottom">Faltan <b>${msToCountdown(next - current)}</b></div>
+        <button class="ghost" id="refreshBtn">Actualizar</button>
+      `;
       t.appendChild(g);
+      hookRefresh();
       return;
     }
 
-    // Pinta capas desbloqueadas + gate hacia la siguiente (si aún falta)
+    // Capas desbloqueadas
     for(let i=0;i<unlockedCount;i++){
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card reveal";
       card.innerHTML = `
         <div class="num">${pad2(i+1)}</div>
         <div class="text">${CAPAS[i] ?? ""}</div>
@@ -222,25 +243,30 @@
 
       const nextIndex = i+1;
 
-      // Si esta NO es la última capa desbloqueada, no pongas gate (ya está la siguiente visible)
-      // Si esta ES la última desbloqueada y aún quedan capas, pon gate hacia la próxima hora
+      // Gate solo después de la última visible y si falta algo
       if(i === unlockedCount - 1 && nextIndex < TOTAL){
+        const next = unlockTimes[nextIndex];
         const g = document.createElement("div");
         g.className = "gate";
-        g.innerHTML = `🔒 <b>La siguiente capa se desbloquea a las ${formatTime(unlockTimes[nextIndex])}.</b><br>
-        Regresa en ese momento (o quédate aquí, se actualiza sola).`;
+        g.innerHTML = `
+          <div class="gateTop">🔒 <b>Siguiente capa a las ${formatTime(next)}.</b></div>
+          <div class="gateMid">${gateCopy(nextIndex)}</div>
+          <div class="gateBottom">Faltan <b>${msToCountdown(next - current)}</b></div>
+          <button class="ghost" id="refreshBtn">Actualizar</button>
+        `;
         t.appendChild(g);
+        hookRefresh();
       }
     }
 
-    // Si ya llegó a la 14, agrega audio bonito al final
+    // Audio solo al final
     if(unlockedCount >= TOTAL){
       const audioBox = document.createElement("div");
       audioBox.className = "card";
       audioBox.innerHTML = `
         <div class="audio">
           <button class="btn" id="playBtn">${AUDIO_LABEL}</button>
-          <div class="small">Tip: si no suena, revisa que el archivo exista y se llame exactamente <b>${AUDIO_FILE}</b>.</div>
+          <div class="small">Si no suena, revisa que exista <b>${AUDIO_FILE}</b> en el repo.</div>
           <audio id="finalAudio" preload="auto">
             <source src="${AUDIO_FILE}" type="audio/mpeg">
           </audio>
@@ -248,30 +274,32 @@
       `;
       t.appendChild(audioBox);
 
-      // hook del botón
       setTimeout(() => {
         const btn = document.getElementById("playBtn");
         const aud = document.getElementById("finalAudio");
         if(btn && aud){
           btn.onclick = async () => {
             try { await aud.play(); }
-            catch(e){ alert("Tu navegador bloqueó el audio. Intenta de nuevo tocando el botón."); }
+            catch(e){ alert("Tu navegador bloqueó el audio. Toca de nuevo el botón."); }
           };
         }
       }, 0);
     }
   }
 
-  // Meta de zona horaria (para evitar confusiones con distancia)
+  function hookRefresh(){
+    const btn = document.getElementById("refreshBtn");
+    if(btn) btn.onclick = () => render();
+  }
+
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  document.getElementById("tzMeta").textContent = `Horario según el reloj de este dispositivo (${tz}).`;
+  document.getElementById("tzMeta").textContent = `Horario según este dispositivo (${tz}).`;
 
-  // Render inicial y refresco automático (dinámico sin refresh)
   render();
-  setInterval(render, 10_000); // cada 10 segundos
-
+  setInterval(render, 1000); // ahora sí: contador vivo, cada 1s
 </script>
 </body>
 </html>
+
 
 
