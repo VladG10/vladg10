@@ -132,32 +132,6 @@
   }
   .ghost:active{ transform: translateY(1px); }
 
-  .audio{
-    margin-top: 14px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    align-items:center;
-  }
-
-  .btn{
-    border: 1px solid rgba(255,255,255,.35);
-    background: rgba(255,255,255,.92);
-    color: #3a0010;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-weight: 700;
-    cursor:pointer;
-  }
-  .btn:active{ transform: translateY(1px); }
-
-  .small{
-    font-size: 13px;
-    color: rgba(255,255,255,.65);
-    text-align:center;
-    line-height: 1.35;
-  }
-
   /* Animación solo cuando JS agrega la clase */
   .just-revealed{
     animation: pop .55s ease both;
@@ -221,10 +195,6 @@
     "Quiero viajar contigo. Quiero que tengamos recuerdos que no quepan en una pantalla.",
     "No tengo todo resuelto. Pero contigo no quiero correr ni esconderme. Quiero estar. Quiero construir. Quiero aprender a hacerlo mejor cada día. Y eso lo quiero contigo."
   ];
-
-  // Audio final
-  const AUDIO_FILE = "mensaje-final.mp3"; // súbelo al repo con este nombre
-  const AUDIO_LABEL = "▶ Escuchar mensaje final";
 
   // Microcopy gates (13 gates entre 14 capas)
   const GATE_LINES = [
@@ -325,33 +295,11 @@
       layerEls.push({ card, index: i });
     }
 
-    // Audio card (sale hasta el final)
-    const audioCard = document.createElement("div");
-    audioCard.className = "card";
-    audioCard.id = "audioCard";
-    audioCard.style.display = "none";
-    audioCard.innerHTML = `
-      <div class="audio">
-        <button class="btn" id="playBtn" type="button">${AUDIO_LABEL}</button>
-        <div class="small">Si no suena, revisa que exista <b>${AUDIO_FILE}</b> en el repo.</div>
-        <audio id="finalAudio" preload="auto">
-          <source src="${AUDIO_FILE}" type="audio/mpeg">
-        </audio>
-      </div>
-    `;
-    timeline.appendChild(audioCard);
-
-    // hooks
+    // hook
     document.getElementById("refreshBtn").onclick = () => tick(true);
 
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     document.getElementById("tzMeta").textContent = `Horario según este dispositivo (${tz}).`;
-
-    document.getElementById("playBtn").onclick = async () => {
-      const aud = document.getElementById("finalAudio");
-      try { await aud.play(); }
-      catch(e){ alert("Tu navegador bloqueó el audio. Toca de nuevo el botón."); }
-    };
   }
 
   // =========================
@@ -394,18 +342,15 @@
       }
     }
 
-    // Gate / Audio
+    // Gate
     const gate = document.getElementById("mainGate");
-    const audioCard = document.getElementById("audioCard");
 
     if(unlockedCount >= TOTAL){
       gate.style.display = "none";
-      audioCard.style.display = "block";
       return;
     }
 
     gate.style.display = "block";
-    audioCard.style.display = "none";
 
     const nextIndex = (unlockedCount === 0) ? 0 : unlockedCount;
     const nextTime = unlockTimes[nextIndex];
@@ -435,4 +380,3 @@
 </script>
 </body>
 </html>
-
