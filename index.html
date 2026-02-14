@@ -166,13 +166,18 @@
   const pad2 = n => String(n).padStart(2,"0");
 
   function buildUnlockTimes(baseDate){
-    // baseDate es "hoy" en el navegador del usuario
     const times = [];
+    const start = new Date(baseDate);
+
+  // arranca 5 segundos después de que abre la página
+    start.setSeconds(start.getSeconds() + 5);
+
     for(let i=0;i<TOTAL;i++){
-      const d = new Date(baseDate);
-      d.setHours(START_HOUR + i, START_MIN, 0, 0);
+      const d = new Date(start);
+      d.setSeconds(start.getSeconds() + (i * 10));
       times.push(d);
     }
+
     return times;
   }
 
@@ -273,4 +278,5 @@
 </script>
 </body>
 </html>
+
 
