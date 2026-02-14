@@ -58,14 +58,14 @@
     backdrop-filter: blur(2px);
   }
 
-  .num{
+  /*.num{
     font-size: 44px;
     letter-spacing: 2px;
     font-weight: 800;
     color: rgba(255,255,255,.22);
     margin-bottom: 8px;
     user-select:none;
-  }
+  }*/
 
   .text{
     font-size: 20px;
@@ -112,6 +112,42 @@
     font-size: 13px;
     color: rgba(255,255,255,.65);
   }
+
+  /* Animación de aparición */
+.reveal{
+  animation: pop .55s ease both;
+}
+@keyframes pop{
+  from { opacity:0; transform: translateY(10px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* Número más elegante: outline vibe */
+.num{
+  font-size: 46px;
+  letter-spacing: 2px;
+  font-weight: 900;
+  color: rgba(255,255,255,.18);
+  text-shadow: 0 1px 0 rgba(0,0,0,.25);
+}
+
+/* Gate layout más “diseñado” */
+.gateTop{ font-size: 15px; margin-bottom: 6px; }
+.gateMid{ color: rgba(255,255,255,.75); margin-bottom: 10px; }
+.gateBottom{ font-size: 13px; color: rgba(255,255,255,.62); }
+
+/* Botón ghost para actualizar */
+.ghost{
+  margin-top: 12px;
+  border-radius: 12px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(0,0,0,.12);
+  color: rgba(255,255,255,.88);
+  cursor: pointer;
+}
+.ghost:active{ transform: translateY(1px); 
+}
 </style>
 </head>
 
@@ -300,6 +336,7 @@
 </script>
 </body>
 </html>
+
 
 
 
